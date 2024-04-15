@@ -1,0 +1,68 @@
+ALGORITHME TableDeVerite(operationLogique: CHAINE):
+    VARIABLES:
+        variables: LISTE DE CARACTERES
+        combinaisons: LISTE DE LISTES D'ENTIERS
+        premiereFormeCanonique: CHAINE
+        deuxiemeFormeCanonique: CHAINE
+        
+    DEBUT:
+        variables <- Liste des variables dans operationLogique
+        combinaisons <- GenererCombinaisons(variables)
+        
+        POUR CHAQUE combinaison DANS combinaisons FAIRE
+            RESULTAT:
+                resultat <- Evaluer(operationLogique, combinaison)
+                AFFICHER combinaison ET resultat
+        
+        premiereFormeCanonique <- CalculerPremiereFormeCanonique(operationLogique)
+        deuxiemeFormeCanonique <- CalculerDeuxiemeFormeCanonique(operationLogique)
+        
+        AFFICHER "Première forme canonique:" ET premiereFormeCanonique
+        AFFICHER "Deuxième forme canonique:" ET deuxiemeFormeCanonique
+    FIN
+
+ALGORITHME GenererCombinaisons(variables: LISTE DE CARACTERES):
+    VARIABLES:
+        combinaisons: LISTE DE LISTES D'ENTIERS
+        
+    DEBUT:
+        combinaisons <- LISTE VIDE
+        POUR i DE 0 A 2^TAILLE(variables) - 1 FAIRE
+            COMBINAISON:
+                combinaison <- Liste de taille TAILLE(variables) remplie de 0
+                POUR j DE 0 A TAILLE(variables) - 1 FAIRE
+                    combinaison[j] <- (i >> j) & 1
+                AJOUTER combinaison A combinaisons
+        RETOURNER combinaisons
+    FIN
+
+ALGORITHME Evaluer(operationLogique: CHAINE, combinaison: LISTE D'ENTIERS):
+    VARIABLES:
+        expression: CHAINE
+        resultat: ENTIER
+        
+    DEBUT:
+        expression <- operationLogique
+        POUR CHAQUE index DE 0 A TAILLE(variables) - 1 FAIRE
+            REMPLACER TOUS LES index-iEMES de expression PAR combinaison[index]
+        resultat <- EVAL(expression)
+        RETOURNER resultat
+    FIN
+
+ALGORITHME CalculerPremiereFormeCanonique(operationLogique: CHAINE):
+    VARIABLES:
+        premiereFormeCanonique: CHAINE
+        
+    DEBUT:
+        premiereFormeCanonique <- "Première forme canonique"
+        RETOURNER premiereFormeCanonique
+    FIN
+
+ALGORITHME CalculerDeuxiemeFormeCanonique(operationLogique: CHAINE):
+    VARIABLES:
+        deuxiemeFormeCanonique: CHAINE
+        
+    DEBUT:
+        deuxiemeFormeCanonique <- "Deuxième forme canonique"
+        RETOURNER deuxiemeFormeCanonique
+    FIN
