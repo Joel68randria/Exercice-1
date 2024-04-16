@@ -1,68 +1,158 @@
-ALGORITHME TableDeVerite(operationLogique: CHAINE):
-    VARIABLES:
-        variables: LISTE DE CARACTERES
-        combinaisons: LISTE DE LISTES D'ENTIERS
-        premiereFormeCanonique: CHAINE
-        deuxiemeFormeCanonique: CHAINE
-        
-    DEBUT:
-        variables <- Liste des variables dans operationLogique
-        combinaisons <- GenererCombinaisons(variables)
-        
-        POUR CHAQUE combinaison DANS combinaisons FAIRE
-            RESULTAT:
-                resultat <- Evaluer(operationLogique, combinaison)
-                AFFICHER combinaison ET resultat
-        
-        premiereFormeCanonique <- CalculerPremiereFormeCanonique(operationLogique)
-        deuxiemeFormeCanonique <- CalculerDeuxiemeFormeCanonique(operationLogique)
-        
-        AFFICHER "Première forme canonique:" ET premiereFormeCanonique
-        AFFICHER "Deuxième forme canonique:" ET deuxiemeFormeCanonique
-    FIN
+        FONCTION evaluate(expression: CHAINE, variables_dict: DICTIONNAIRE)
+        VARIABLES_FONCTION
+                variable, value: CHAINE
+        DEBUT_FONCTION
+                expression -> expression.replace("+", " or ")
+                expression -> expression.replace(".", " and ")
+                expression -> expression.replace("!", " not ")
+                expression -> expression.replace("~", " not ")
 
-ALGORITHME GenererCombinaisons(variables: LISTE DE CARACTERES):
-    VARIABLES:
-        combinaisons: LISTE DE LISTES D'ENTIERS
-        
-    DEBUT:
-        combinaisons <- LISTE VIDE
-        POUR i DE 0 A 2^TAILLE(variables) - 1 FAIRE
-            COMBINAISON:
-                combinaison <- Liste de taille TAILLE(variables) remplie de 0
-                POUR j DE 0 A TAILLE(variables) - 1 FAIRE
-                    combinaison[j] <- (i >> j) & 1
-                AJOUTER combinaison A combinaisons
-        RETOURNER combinaisons
-    FIN
+                POUR variable, value DANS variables_dict.items()
+                DEBUT_POUR
+                        expression -> expression.replace(variable, str(value))
+                FIN_POUR
 
-ALGORITHME Evaluer(operationLogique: CHAINE, combinaison: LISTE D'ENTIERS):
-    VARIABLES:
-        expression: CHAINE
-        resultat: ENTIER
-        
-    DEBUT:
-        expression <- operationLogique
-        POUR CHAQUE index DE 0 A TAILLE(variables) - 1 FAIRE
-            REMPLACER TOUS LES index-iEMES de expression PAR combinaison[index]
-        resultat <- EVAL(expression)
-        RETOURNER resultat
-    FIN
+                RENVOYER eval(expression)
+        FIN_FONCTION
 
-ALGORITHME CalculerPremiereFormeCanonique(operationLogique: CHAINE):
-    VARIABLES:
-        premiereFormeCanonique: CHAINE
-        
-    DEBUT:
-        premiereFormeCanonique <- "Première forme canonique"
-        RETOURNER premiereFormeCanonique
-    FIN
+        FONCTION get_variables(expression: CHAINE)
+        DEBUT_FONCTION
+                RENVOYER sorted(set(filter(str.isalpha, expression)))
+        FIN_FONCTION
 
-ALGORITHME CalculerDeuxiemeFormeCanonique(operationLogique: CHAINE):
-    VARIABLES:
-        deuxiemeFormeCanonique: CHAINE
-        
-    DEBUT:
-        deuxiemeFormeCanonique <- "Deuxième forme canonique"
-        RETOURNER deuxiemeFormeCanonique
-    FIN
+        FONCTION truth_table(expression: CHAINE)
+        VARIABLES_FONCTION
+                results, variables, tab, b, values: LISTE
+                var_count, i, result: NOMBRE
+                value_dict: DICTIONNAIRE
+                value_str: CHAINE
+        DEBUT_FONCTION
+                expression -> expression.upper()
+
+                variables -> get_variables(expression)
+                var_count -> len(variables)
+                print(" | ".join(variables + ["" + expression]))
+                print("-" * (len(expression) + 3 * (len(variables) + 2)))
+
+                POUR i DANS range(2**var_count)
+                        b -> list(bin(i)[2:].zfill(var_count))
+                        tab.append(b)
+
+                POUR values DANS tab
+                        value_dict -> dict(zip(variables, values))
+                        result -> evaluate(expression, value_dict)
+                        results.append(result)
+                        value_str -> " | ".join(str(v) POUR v DANS values)
+                        print(f" | ".join([value_str, str(int(result))]))
+
+                RENVOYER results, variables
+        FIN_FONCTION
+
+        FONCTION disjonctive_canon(results: LISTE, variables: LISTE)
+        VARIABLES_FONCTION
+                var_count, i, j: NOMBRE
+                tab, b, results: LISTE
+                output, tmp: CHAINE
+        DEBUT_FONCTION
+                var_count -> len(variables)
+                POUR i DANS range(2**var_count)
+                DEBUT_POUR
+                        b -> list(bin(i)[2:].zfill(var_count))
+                        tab.append(b)
+                FIN_POUR
+
+                POUR i DANS range(len(tab))
+                DEBUT_POUR
+                        SI results[i] == 1
+                        DEBUT_SI
+                                POUR j DANS range(len(tab[i]))
+                                        SI tab[i][j] == '1' ALORS
+                                        DEBUT_SI
+                                                tmp += variables[j]
+                                        FIN_SI
+                                        SI tab[i][j] == '0' ALORS
+                                        DEBUT_SI
+                                                tmp += variables[j]
+                                        FIN_SI
+                                        tmp += "."
+                                SI tmp[-1] == "." ALORS
+                                DEBUT_SI
+                                        tmp -> tmp[:-1]
+                                FIN_SI
+                                tmp += " + "
+                                output += 
+                        FIN_SI
+                FIN_POUR
+
+                SI output[-3:] == " + " ALORS
+                DEBUT_SI
+                        output -> output[:-3]
+                FIN_SI
+
+                RENVOYER output
+        FIN_FONCTION
+
+        FONCTION conjonctive_canon(results: LISTE, variables: LISTE)
+        VARIABLES_FONCTION
+                var_count, i, j: NOMBRE
+                tab, b, results: LISTE
+                output, tmp: CHAINE
+        DEBUT_FONCTION
+                var_count -> len(variables)
+                POUR i DANS range(2**var_count)
+                DEBUT_POUR
+                        b -> list(bin(i)[2:].zfill(var_count))
+                        tab.append(b)
+                FIN_POUR
+
+                POUR i DANS range(len(tab))
+                DEBUT_POUR
+                        SI results[i] == 0 ALORS
+                        DEBUT_SI
+                                tmp -> "("
+                                POUR j DANS range(len(tab[i]))
+                                        SI tab[i][j] == '1' ALORS
+                                        DEBUT_SI
+                                                tmp += "!" + variables[j]
+                                        FIN_SI
+                                        SI tab[i][j] == '0' ALORS
+                                        DEBUT_SI
+                                                tmp += variables[j]
+                                        FIN_SI
+                                        tmp += " + "
+                                SI tmp[-3:] == " + " ALORS
+                                DEBUT_SI
+                                        tmp -> tmp[:-3]
+                                FIN_SI
+                                tmp += ")."
+                                output += tmp
+                        FIN_SI
+                FIN_POUR
+
+                SI output[-1] == "." ALORS
+                DEBUT_SI
+                        output -> output[:-1]
+                FIN_SI
+
+                RENVOYER output
+        FIN_FONCTION
+
+        FONCTION main()
+        VARIABLES_FONCTION
+                expression: CHAINE
+                results, variables: LISTE
+        DEBUT_FONCTION
+                expression -> input("Entrez l'expression de votre fonction (ex: A + !(B.C)): ")
+                print("\nTable de vérité")
+                results, variables -> truth_table(expression)
+
+                print("\nForme canonique disjonctive:")
+                print("\t", disjonctive_canon(results, variables))
+                print("\nForme canonique conjonctive:")
+                print("\t", conjonctive_canon(results, variables))
+        FIN_FONCTION
+
+VARIABLES
+DEBUT_ALGORITHME
+        main()
+FIN_ALGORITHME
